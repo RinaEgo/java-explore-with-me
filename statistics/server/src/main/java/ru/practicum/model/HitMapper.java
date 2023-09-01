@@ -1,10 +1,12 @@
 package ru.practicum.model;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.HitDto;
 
+@UtilityClass
 public class HitMapper {
 
-    public static Hit toHit(HitDto hitDto) {
+    public Hit toHit(HitDto hitDto) {
         return Hit
                 .builder()
                 .app(hitDto.getApp())
