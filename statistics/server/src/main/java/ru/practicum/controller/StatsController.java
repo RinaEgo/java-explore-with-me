@@ -1,7 +1,5 @@
 package ru.practicum.controller;
 
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.HitDto;
@@ -15,7 +13,6 @@ import java.util.List;
 public class StatsController {
     private final StatsService statsService;
 
-    @Autowired
     public StatsController(StatsService statsService) {
         this.statsService = statsService;
     }

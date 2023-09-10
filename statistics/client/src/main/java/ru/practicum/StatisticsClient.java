@@ -1,95 +1,183 @@
 package ru.practicum;
 
-import org.springframework.lang.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.*;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class StatisticsClient {
-    private final RestTemplate rest;
+
+    @Value("${statistics.url}")
+    private String serverUrl;
+    private final RestTemplate restTemplate;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    public void addHit(HitDto endpointHitRequestDto) {
+        restTemplate.postForLocation(serverUrl.concat("/hit"), endpointHitRequestDto);
+    }
+
+    public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end,
+                                               List<String> uris, boolean unique) {
+        Map<String, Object> parameters = new HashMap<>(Map.of(
+                "start", start.format(formatter),
+                "end", end.format(formatter),
+                "unique", unique));
+
+        if (uris != null && !uris.isEmpty()) {
+            parameters.put("uris", String.join(",", uris));
+        }
+
+        StatsDto[] response = restTemplate.getForObject(
+                serverUrl.concat("/stats?start={start}&end={end}&uris={uris}&unique={unique}"),
+                StatsDto[].class, parameters);
+
+        return Objects.isNull(response)
+                ? List.of()
+                : List.of(response);
+    }
+
+/*
+    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final WebClient webClient;
+
+    @Value("${spring.application.name}")
+    private String appName;
+
+    public StatClient(String url) {
+        this.webClient = WebClient.create(url);
+    }
+
+    public void addHit(HttpServletRequest httpRequest, Long eventId) {
+        HitDto endpointHitDto = HitDto.builder()
+                .app(appName)
+                .ip(httpRequest.getRemoteAddr())
+                .uri(httpRequest.getRequestURI() + "/" + eventId)
+                .timestamp(LocalDateTime.now())
+                .build();
+        webClient.post()
+                .uri("/hit")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .bodyValue(endpointHitDto)
+                .retrieve()
+                .bodyToMono(HitDto.class)
+                .block();
+    }
+
+    public void addHit(HttpServletRequest httpRequest) {
+        HitDto endpointHitDto = HitDto.builder()
+                .app(appName)
+                .ip(httpRequest.getRemoteAddr())
+                .uri(httpRequest.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+        webClient.post()
+                .uri("/hit")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .bodyValue(endpointHitDto)
+                .retrieve()
+                .bodyToMono(HitDto.class)
+                .block();
+    }
+
+    public List<StatsDto> getListStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/stats")
+                        .queryParam("start", start.format(DATE_TIME_FORMATTER))
+                        .queryParam("end", end.format(DATE_TIME_FORMATTER))
+                        .queryParam("uris", uris)
+                        .queryParam("unique", unique)
+                        .build())
+                .retrieve()
+                .bodyToFlux(StatsDto.class)
+                .collectList()
+                .block();
+    }*/
+
+
+    /*private final HttpClient httpClient;
+
+    private final String application;
+
+    private final String statisticsUri;
+    private final ObjectMapper mapper;
 
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    @Autowired
-    public StatisticsClient(@Value("${statistics-server.url}") String serverUrl, RestTemplateBuilder builder) {
-        rest = builder
-                .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
-                .requestFactory(HttpComponentsClientHttpRequestFactory::new)
+    public StatisticsClient(String statisticsUri, String application, ObjectMapper mapper) {
+        this.application = application;
+        this.statisticsUri = statisticsUri;
+        this.mapper = mapper;
+        this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(3))
                 .build();
     }
 
-    private HttpHeaders defaultHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        return headers;
-    }
+    public void addHit(HttpServletRequest request) {
 
-    private static ResponseEntity<Object> prepareGatewayResponse(ResponseEntity<Object> response) {
-        if (response.getStatusCode().is2xxSuccessful()) {
-            return response;
-        }
-
-        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(response.getStatusCode());
-
-        if (response.hasBody()) {
-            return responseBuilder.body(response.getBody());
-        }
-
-        return responseBuilder.build();
-    }
-
-    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, @Nullable Map<String, Object> parameters, @Nullable T body) {
-        HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders());
-
-        ResponseEntity<Object> serverResponse;
+        HitDto hitDto = HitDto.builder()
+                .app(application)
+                .uri(request.getRequestURI())
+                .ip(request.getRemoteAddr())
+                .timestamp(LocalDateTime.now().format(dateTimeFormatter))
+                .build();
         try {
-            if (parameters != null) {
-                serverResponse = rest.exchange(path, method, requestEntity, Object.class, parameters);
-            } else {
-                serverResponse = rest.exchange(path, method, requestEntity, Object.class);
-            }
-        } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
+            HttpRequest.BodyPublisher bodyPublisher = HttpRequest
+                    .BodyPublishers
+                    .ofString(mapper.writeValueAsString(hitDto));
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(statisticsUri + "/hit"))
+                    .POST(bodyPublisher)
+                    .header(HttpHeaders.CONTENT_TYPE, "application/json")
+                    .header(HttpHeaders.ACCEPT, "application/json")
+                    .build();
+            httpClient.send(httpRequest, HttpResponse.BodyHandlers.discarding());
+
+        } catch (Exception e) {
+            log.error("Не удалось сохранить информацию о том, что на uri конкретного сервиса был отправлен " +
+                    "запрос пользователем.", e);
+
         }
-        return prepareGatewayResponse(serverResponse);
     }
 
-    protected <T> ResponseEntity<Object> post(String path, @Nullable Map<String, Object> parameters, T body) {
-        return makeAndSendRequest(HttpMethod.POST, path, parameters, body);
+    public List<StatsDto> getStatsHit(StatsParamDto statsParamDto) {
+        try {
+            String queryString = toQueryString(statsParamDto);
+
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(statisticsUri + "/stats" + queryString))
+                    .header(HttpHeaders.ACCEPT, "application/json")
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+            if (HttpStatus.valueOf(response.statusCode()).is2xxSuccessful()) {
+                return mapper.readValue(response.body(), new TypeReference<>(){});
+            }
+
+        } catch (Exception e) {
+            log.error("Не удалось получить статистику по запросу: " +  statsParamDto, e);
+        }
+
+        return Collections.emptyList();
     }
 
-    protected <T> ResponseEntity<Object> post(String path, T body) {
-        return post(path, null, body);
-    }
+    private String toQueryString(StatsParamDto statsParamDto) {
+        String start = statsParamDto.getStart();
+        String end = statsParamDto.getEnd();
 
-    protected ResponseEntity<Object> postHit(HitDto hitDto) {
-        return post("/hit", hitDto);
-    }
+        String queryString = String.format("?start=%s&end=%s&unique=%b",
+                start, end, statsParamDto.isUnique());
+        if (statsParamDto.getUris().length > 0) {
+            queryString += "&uris=" + String.join(",", statsParamDto.getUris());
+        }
 
-    protected ResponseEntity<Object> get(String path, @Nullable Map<String, Object> parameters) {
-        return makeAndSendRequest(HttpMethod.GET, path, parameters, null);
-    }
-
-    protected ResponseEntity<Object> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
-        Map<String, Object> parameters = Map.of(
-                "start", start.format(dateTimeFormatter),
-                "end", end.format(dateTimeFormatter),
-                "uris", String.join(", ", uris),
-                "unique", unique
-        );
-        return get("/stats?start={start}&end={end}&uris={uris}&unique={unique}", parameters);
-    }
+        return queryString;
+    }*/
 }
