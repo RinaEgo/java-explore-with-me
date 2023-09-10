@@ -3,10 +3,13 @@ package ru.practicum;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -17,15 +20,18 @@ public class StatisticsClient {
 
     @Value("${statistics.url}")
     private String serverUrl;
+    @Value("${spring.application.name}")
+    private String app;
+
     private final RestTemplate restTemplate;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final WebClient webClient;
 
-    public void addHit(HitDto endpointHitRequestDto) {
+    /*public void addHit(HitDto endpointHitRequestDto) {
         restTemplate.postForLocation(serverUrl.concat("/hit"), endpointHitRequestDto);
     }
 
-    /* public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end,
+     public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end,
                                                List<String> uris, boolean unique) {
         Map<String, Object> parameters = new HashMap<>(Map.of(
                 "start", start.format(formatter),
@@ -44,6 +50,38 @@ public class StatisticsClient {
                 ? List.of()
                 : List.of(response);
     }*/
+
+    public void addHit(HttpServletRequest httpRequest, Long eventId) {
+        HitDto endpointHitDto = HitDto.builder()
+                .app(app)
+                .ip(httpRequest.getRemoteAddr())
+                .uri(httpRequest.getRequestURI() + "/" + eventId)
+                .timestamp(LocalDateTime.now())
+                .build();
+        webClient.post()
+                .uri("/hit")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .bodyValue(endpointHitDto)
+                .retrieve()
+                .bodyToMono(HitDto.class)
+                .block();
+    }
+
+    public void addHit(HttpServletRequest httpRequest) {
+        HitDto endpointHitDto = HitDto.builder()
+                .app(app)
+                .ip(httpRequest.getRemoteAddr())
+                .uri(httpRequest.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+        webClient.post()
+                .uri("/hit")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .bodyValue(endpointHitDto)
+                .retrieve()
+                .bodyToMono(HitDto.class)
+                .block();
+    }
 
     public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
         return webClient.get()

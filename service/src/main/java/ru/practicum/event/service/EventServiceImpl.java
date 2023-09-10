@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.practicum.HitDto;
 import ru.practicum.StatisticsClient;
 import ru.practicum.StatsDto;
 import ru.practicum.category.repository.CategoryRepository;
@@ -202,7 +201,7 @@ public class EventServiceImpl implements EventService {
         List<Event> events = eventRepository.findAllPublic(text, categories, paid,
                 rangeStart, rangeEnd, onlyAvailable, PageRequest.of(from / size, size));
 
-        sendStats(httpRequest.getRequestURI(), httpRequest.getRemoteAddr());
+        statisticsClient.addHit(httpRequest);
 
         List<Long> eventIds = events.stream()
                 .map(Event::getId)
@@ -280,7 +279,7 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Запрошенное событие не находится в статусе опубликовано");
         }
 
-        sendStats(httpRequest.getRequestURI(), httpRequest.getRemoteAddr());
+        statisticsClient.addHit(httpRequest, eventId);
 
         return mapToEventDto(List.of(event)).get(0);
     }
@@ -470,7 +469,7 @@ public class EventServiceImpl implements EventService {
         return eventDtoList;
     }
 
-    private void sendStats(String uri, String ip) {
+    /*private void sendStats(String uri, String ip) {
         HitDto endpointHitRequestDto = HitDto.builder()
                 .app(app)
                 .uri(uri)
@@ -479,5 +478,5 @@ public class EventServiceImpl implements EventService {
                 .build();
 
         statisticsClient.addHit(endpointHitRequestDto);
-    }
+    }*/
 }
