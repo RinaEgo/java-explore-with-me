@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,12 +19,13 @@ public class StatisticsClient {
     private String serverUrl;
     private final RestTemplate restTemplate;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final WebClient webClient;
 
     public void addHit(HitDto endpointHitRequestDto) {
         restTemplate.postForLocation(serverUrl.concat("/hit"), endpointHitRequestDto);
     }
 
-    public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end,
+    /* public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end,
                                                List<String> uris, boolean unique) {
         Map<String, Object> parameters = new HashMap<>(Map.of(
                 "start", start.format(formatter),
@@ -41,7 +43,23 @@ public class StatisticsClient {
         return Objects.isNull(response)
                 ? List.of()
                 : List.of(response);
+    }*/
+
+    public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/stats")
+                        .queryParam("start", start.format(formatter))
+                        .queryParam("end", end.format(formatter))
+                        .queryParam("uris", uris)
+                        .queryParam("unique", unique)
+                        .build())
+                .retrieve()
+                .bodyToFlux(StatsDto.class)
+                .collectList()
+                .block();
     }
+
+
 
 /*
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
