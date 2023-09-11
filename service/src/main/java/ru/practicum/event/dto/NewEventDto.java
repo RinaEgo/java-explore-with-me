@@ -1,44 +1,45 @@
 package ru.practicum.event.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import ru.practicum.event.model.Location;
 
+import javax.validation.Valid;
 import javax.validation.constraints.*;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
+@Valid
 public class NewEventDto {
 
-    private Long id;
-
-    @NotBlank
+    @NotNull
     @Size(min = 20, max = 2000)
     private String annotation;
 
     @NotNull
     private Long category;
 
-    @NotBlank
+    @NotNull
     @Size(min = 20, max = 7000)
     private String description;
 
-    @NotBlank
-    private String eventDate;
+    @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime eventDate;
 
     @NotNull
     private Location location;
 
-    private Boolean paid;
+    private boolean paid;
 
-    @PositiveOrZero
     private int participantLimit;
 
-    private Boolean requestModeration;
+    private Boolean requestModeration = true;
 
-    @NotBlank
+    @NotNull
     @Size(min = 3, max = 120)
     private String title;
 }

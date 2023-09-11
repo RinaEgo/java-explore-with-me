@@ -22,20 +22,20 @@ public class RequestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public RequestDto create(@PathVariable Long userId,
+    public RequestDto create(@PathVariable(name = "userId") Long userId,
                              @Valid @RequestParam(name = "eventId") Long eventId) {
 
         return requestService.create(userId, eventId);
     }
 
     @GetMapping
-    public List<RequestDto> getAll(@PathVariable Long userId) {
+    public List<RequestDto> getCurrentUserRequests(@PathVariable(name = "userId") Long userId) {
 
-        return requestService.getAll(userId);
+        return requestService.getCurrentUserRequests(userId);
     }
 
     @PatchMapping("/{requestId}/cancel")
-    public RequestDto cancel(@PathVariable Long userId, @PathVariable Long requestId) {
+    public RequestDto cancel(@PathVariable(name = "userId") Long userId, @PathVariable Long requestId) {
 
         return requestService.cancel(userId, requestId);
     }

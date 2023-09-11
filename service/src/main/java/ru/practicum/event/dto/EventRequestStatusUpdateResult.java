@@ -9,7 +9,6 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
 public class EventRequestStatusUpdateResult {
 
     private List<RequestDto> confirmedRequests;

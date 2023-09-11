@@ -14,7 +14,7 @@ public interface CompilationService {
 
     void delete(Long compilationId);
 
-    List<CompilationDto> getAll(boolean pinned, int from, int size);
+    List<CompilationDto> getAll(Boolean pinned, Integer from, Integer size);
 
     CompilationDto getById(Long compilationId);
 }

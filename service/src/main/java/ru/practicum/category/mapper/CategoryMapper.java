@@ -1,24 +1,22 @@
 package ru.practicum.category.mapper;
 
-import lombok.experimental.UtilityClass;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.springframework.stereotype.Component;
 import ru.practicum.category.dto.CategoryDto;
+import ru.practicum.category.dto.NewCategoryDto;
 import ru.practicum.category.model.Category;
 
-@UtilityClass
-public class CategoryMapper {
-    public CategoryDto toCategoryDto(Category category) {
-        return CategoryDto
-                .builder()
-                .id(category.getId())
-                .name(category.getName())
-                .build();
-    }
+import java.util.List;
 
-    public Category toCategory(CategoryDto categoryDto) {
-        return Category
-                .builder()
-                .id(categoryDto.getId())
-                .name(categoryDto.getName())
-                .build();
-    }
+@Component
+@Mapper(componentModel = "spring")
+public interface CategoryMapper {
+
+    @Mapping(target = "id", ignore = true)
+    Category toCategory(NewCategoryDto newCategoryDto);
+
+    CategoryDto toCategoryDto(Category category);
+
+    List<CategoryDto> toCategoryDtoList(List<Category> categoryList);
 }

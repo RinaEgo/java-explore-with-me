@@ -1,12 +1,10 @@
 package ru.practicum.event.service;
 
+import org.springframework.data.domain.Pageable;
 import ru.practicum.event.dto.*;
-import ru.practicum.event.model.State;
-import ru.practicum.request.dto.RequestDto;
+import ru.practicum.event.model.Sort;
 
 import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 
 public interface EventService {
@@ -15,29 +13,19 @@ public interface EventService {
 
     EventDto update(Long userId, Long eventId, UpdateEventUserRequest updateEventUserRequest);
 
-    EventDto updateAdmin(Long eventId, UpdateEventDto updateEventDto);
+    EventDto updateAdmin(Long eventId, UpdateEventAdminRequest updateEventAdminRequest);
 
-    List<EventShortDto> getAllPublic(String text, List<Long> categories, Boolean paid,
-                                     LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                     Boolean onlyAvailable, String sort,
-                                     HttpServletRequest httpRequest, int from, int size);
+    List<EventShortDto> getAllPublic(String text, List<Long> categoriesIds, Boolean paid, String rangeStart,
+                                     String rangeEnd, Boolean onlyAvailable, Sort sort, Integer from,
+                                     Integer size, HttpServletRequest request);
 
-    List<EventDto> getAllAdmin(List<Long> users,
-                               Collection<State> states,
-                               List<Long> categories,
-                               LocalDateTime rangeStart,
-                               LocalDateTime rangeEnd,
-                               int from, int size);
+    List<EventDto> getAllAdmin(List<Long> userIds, List<String> states, List<Long> categories,
+                               String rangeStart, String rangeEnd, Integer from, Integer size,
+                               HttpServletRequest request);
 
-    List<EventShortDto> getAllByUser(Long userId, int from, int size);
+    List<EventShortDto> getAllByUser(Long userId, Pageable pageable);
 
-    EventDto getById(Long eventId, Long userId);
+    EventDto getById(Long userId, Long eventId);
 
     EventDto getByIdPublic(Long eventId, HttpServletRequest httpRequest);
-
-    List<RequestDto> getAllRequests(Long eventId, Long userId);
-
-    EventRequestStatusUpdateResult updateStatusRequest(Long userId,
-                                                       Long eventId,
-                                                       EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest);
 }

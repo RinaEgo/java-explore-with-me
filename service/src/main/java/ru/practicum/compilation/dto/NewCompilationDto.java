@@ -4,20 +4,18 @@ import lombok.*;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.List;
+import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
 public class NewCompilationDto {
 
-    private Long id;
-    private List<Long> events;
-    private boolean pinned;
+    private Set<Long> events;
+    private Boolean pinned;
 
     @NotBlank
-    @Size(min = 3, max = 120)
+    @Size(max = 50)
     private String title;
 }

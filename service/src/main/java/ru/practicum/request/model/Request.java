@@ -13,25 +13,28 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
 public class Request {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "request_id")
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    private LocalDateTime created;
+
+    @ManyToOne
     @JoinColumn(name = "event_id")
     private Event event;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne
     @JoinColumn(name = "requester_id")
     private User requester;
 
-    @Column(name = "creation_date")
-    private LocalDateTime createDate;
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
     private RequestStatus status;
+
+    public Request(LocalDateTime created, Event event, User requester, RequestStatus status) {
+        this.created = created;
+        this.event = event;
+        this.requester = requester;
+        this.status = status;
+    }
 }

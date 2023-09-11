@@ -4,7 +4,7 @@ import lombok.*;
 import ru.practicum.event.model.Event;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "compilations")
@@ -12,21 +12,19 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
 public class Compilation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "compilation_id")
     private Long id;
 
-    @ManyToMany
-    @JoinTable(name = "event_compilation", joinColumns = @JoinColumn(name = "compilation_id"),
-            inverseJoinColumns = @JoinColumn(name = "event_id"))
-    private List<Event> events;
+    private Boolean pinned;
 
-    private boolean pinned;
-
-    @Column(name = "title", nullable = false, length = 120)
     private String title;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "compilations_events", joinColumns = @JoinColumn(name = "compilation_id"),
+            inverseJoinColumns = @JoinColumn(name = "event_id")
+    )
+    private Set<Event> events;
 }

@@ -1,9 +1,11 @@
 package ru.practicum.category.controller;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.category.dto.CategoryDto;
+import ru.practicum.category.dto.NewCategoryDto;
 import ru.practicum.category.service.CategoryService;
 
 import javax.validation.Valid;
@@ -21,9 +23,9 @@ public class CategoryController {
 
     @PostMapping("/admin/categories")
     @ResponseStatus(HttpStatus.CREATED)
-    public CategoryDto create(@Valid @RequestBody CategoryDto categoryDto) {
+    public CategoryDto create(@Valid @RequestBody NewCategoryDto newCategoryDto) {
 
-        return categoryService.create(categoryDto);
+        return categoryService.create(newCategoryDto);
     }
 
     @PatchMapping("/admin/categories/{catId}")
@@ -40,10 +42,10 @@ public class CategoryController {
     }
 
     @GetMapping("/categories")
-    public List<CategoryDto> getAll(@RequestParam(name = "from", defaultValue = "0") Integer from,
-                                    @RequestParam(name = "size", defaultValue = "10") Integer size) {
+    public List<CategoryDto> getAll(@RequestParam(required = false, defaultValue = "0") Integer from,
+                                    @RequestParam(required = false, defaultValue = "10") Integer size) {
 
-        return categoryService.getAll(from, size);
+        return categoryService.getAll(PageRequest.of(from, size));
     }
 
     @GetMapping("/categories/{catId}")

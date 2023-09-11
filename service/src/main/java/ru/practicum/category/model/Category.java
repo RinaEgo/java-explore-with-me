@@ -3,7 +3,6 @@ package ru.practicum.category.model;
 import lombok.*;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "categories")
@@ -11,15 +10,12 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
 public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "category_id")
     private Long id;
 
-    @Column(name = "category_name", unique = true)
-    @NotBlank
+    @Column(unique = true, nullable = false)
     private String name;
 }

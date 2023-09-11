@@ -1,49 +1,58 @@
 package ru.practicum.category.service;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.dto.CategoryDto;
+import ru.practicum.category.dto.NewCategoryDto;
 import ru.practicum.category.mapper.CategoryMapper;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
+import ru.practicum.event.repository.EventRepository;
+import ru.practicum.exception.AlreadyExistsException;
+import ru.practicum.exception.NotAvailableException;
 import ru.practicum.exception.NotFoundException;
+import ru.practicum.exception.ValidationException;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
-
-    public CategoryServiceImpl(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
+    private final CategoryMapper categoryMapper;
+    private final EventRepository eventRepository;
 
     @Override
     @Transactional
-    public CategoryDto create(CategoryDto categoryDto) {
-        Category category = CategoryMapper.toCategory(categoryDto);
-        Category categoryToSave = categoryRepository.save(category);
+    public CategoryDto create(NewCategoryDto newCategoryDto) {
+        if (categoryRepository.existsByName(newCategoryDto.getName())) {
+            throw new AlreadyExistsException("Категория с именем " + newCategoryDto.getName() + " уже существует.");
+        }
 
-        return CategoryMapper.toCategoryDto(categoryToSave);
+        return categoryMapper.toCategoryDto(
+                categoryRepository.save(
+                        categoryMapper.toCategory(newCategoryDto)));
     }
 
     @Override
     @Transactional
     public CategoryDto update(Long categoryId, CategoryDto categoryDto) {
 
+        if (categoryDto.getName() == null || categoryDto.getName().isEmpty()) {
+            throw new ValidationException("Название категории не может быть пустым.");
+        }
+
         Category categoryToUpdate = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Категория с id " + categoryId + " не найдена."));
 
-        Category category = CategoryMapper.toCategory(categoryDto);
-
-        if (category.getName() != null) {
-            categoryToUpdate.setName(category.getName());
+        if (!categoryToUpdate.getName().equals(categoryDto.getName()) && categoryRepository.existsByName(categoryDto.getName())) {
+            throw new AlreadyExistsException("Категория с именем " + categoryDto.getName() + " уже существует.");
+        } else {
+            categoryToUpdate.setName(categoryDto.getName());
+            return categoryMapper.toCategoryDto(categoryRepository.save(categoryToUpdate));
         }
-
-        return CategoryMapper.toCategoryDto(categoryRepository.save(categoryToUpdate));
     }
 
     @Override
@@ -52,16 +61,17 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Категория с id " + categoryId + " не найдена."));
 
+        if (eventRepository.existsByCategoryId(categoryId)) {
+            throw new NotAvailableException("Ошибка. Категория содержит события.");
+        }
+
         categoryRepository.deleteById(categoryId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<CategoryDto> getAll(int from, int size) {
-        return categoryRepository.findAll(PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id")))
-                .stream()
-                .map(CategoryMapper::toCategoryDto)
-                .collect(Collectors.toList());
+    public List<CategoryDto> getAll(Pageable pageable) {
+        return categoryMapper.toCategoryDtoList(categoryRepository.findAll(pageable).toList());
     }
 
     @Override
@@ -70,6 +80,6 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Категория с id " + categoryId + " не найдена."));
 
-        return CategoryMapper.toCategoryDto(category);
+        return categoryMapper.toCategoryDto(category);
     }
 }

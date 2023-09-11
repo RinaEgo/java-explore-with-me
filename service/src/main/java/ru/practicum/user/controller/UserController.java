@@ -1,5 +1,6 @@
 package ru.practicum.user.controller;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -33,10 +34,10 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserDto> findAllUsers(@RequestParam(value = "ids", required = false) Long[] ids,
+    public List<UserDto> findAllUsers(@RequestParam(value = "ids", required = false) List<Long> ids,
                                       @RequestParam(name = "from", defaultValue = "0") @Min(0) Integer from,
                                       @RequestParam(name = "size", defaultValue = "10") @Min(1) Integer size) {
 
-        return userService.findAllUsers(ids, from, size);
+        return userService.findAllUsers(ids, PageRequest.of(from, size));
     }
 }

@@ -1,33 +1,18 @@
 package ru.practicum.user.mapper;
 
-import lombok.experimental.UtilityClass;
+import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
 import ru.practicum.user.dto.UserDto;
-import ru.practicum.user.dto.UserShortDto;
 import ru.practicum.user.model.User;
 
-@UtilityClass
-public class UserMapper {
-    public UserDto toUserDto(User user) {
-        return UserDto.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .build();
-    }
+import java.util.List;
 
-    public User toUser(UserDto userDto) {
-        return User.builder()
-                .id(userDto.getId())
-                .name(userDto.getName())
-                .email(userDto.getEmail())
-                .build();
-    }
+@Mapper(componentModel = "spring")
+@Component
+public interface UserMapper {
+    UserDto toUserDto(User user);
 
-    public UserShortDto toUserShortDto(User user) {
-        return UserShortDto
-                .builder()
-                .id(user.getId())
-                .name(user.getName())
-                .build();
-    }
+    User toUser(UserDto userDto);
+
+    List<UserDto> toUserDtoList(List<User> userList);
 }

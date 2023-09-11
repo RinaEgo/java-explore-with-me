@@ -1,16 +1,18 @@
 package ru.practicum.event.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import ru.practicum.event.model.Location;
+import ru.practicum.event.model.StateActionAdmin;
 
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
-public class UpdateEventDto {
+public class UpdateEventAdminRequest {
 
     @Size(min = 20, max = 2000)
     private String annotation;
@@ -20,17 +22,18 @@ public class UpdateEventDto {
     @Size(min = 20, max = 7000)
     private String description;
 
-    private String eventDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime eventDate;
 
     private Location location;
 
     private Boolean paid;
 
-    private int participantLimit;
+    private Integer participantLimit;
 
     private Boolean requestModeration;
 
-    private String stateAction;
+    private StateActionAdmin stateAction;
 
     @Size(min = 3, max = 120)
     private String title;

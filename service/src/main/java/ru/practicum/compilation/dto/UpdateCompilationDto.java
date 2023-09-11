@@ -3,19 +3,17 @@ package ru.practicum.compilation.dto;
 import lombok.*;
 
 import javax.validation.constraints.Size;
-import java.util.List;
+import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
 public class UpdateCompilationDto {
 
-    private Long id;
-    private List<Long> events;
-    private boolean pinned;
+    private Set<Long> events;
+    private Boolean pinned;
 
-    @Size(min = 3, max = 120)
+    @Size(min = 1, max = 50)
     private String title;
 }

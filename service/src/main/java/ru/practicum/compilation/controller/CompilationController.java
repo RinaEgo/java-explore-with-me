@@ -28,7 +28,7 @@ public class CompilationController {
     }
 
     @PatchMapping("/admin/compilations/{compId}")
-    public CompilationDto update(@RequestBody UpdateCompilationDto updateCompilationDto,
+    public CompilationDto update(@Valid @RequestBody UpdateCompilationDto updateCompilationDto,
                                  @PathVariable Long compId) {
 
         return compilationService.update(compId, updateCompilationDto);
@@ -42,9 +42,9 @@ public class CompilationController {
     }
 
     @GetMapping("/compilations")
-    public List<CompilationDto> getAll(@RequestParam(value = "pinned", required = false) boolean pinned,
-                                       @RequestParam(name = "from", defaultValue = "0") Integer from,
-                                       @RequestParam(name = "size", defaultValue = "10") Integer size) {
+    public List<CompilationDto> getAll(@RequestParam(name = "pinned", required = false) Boolean pinned,
+                                       @RequestParam(name = "from", required = false, defaultValue = "0") Integer from,
+                                       @RequestParam(name = "size", required = false, defaultValue = "10") Integer size) {
 
         return compilationService.getAll(pinned, from, size);
     }
