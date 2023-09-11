@@ -28,14 +28,28 @@ public class ErrorHandler {
                 HttpStatus.NOT_FOUND.getReasonPhrase().toUpperCase(), LocalDateTime.now());
     }
 
-    @ExceptionHandler({AlreadyExistsException.class, NotAvailableException.class})
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
-    public ApiError handleConflictException(final RuntimeException e) {
-        log.info("409: {} ", e.getMessage(), e);
-
-        return new ApiError(e.getMessage(), "CONFLICT",
+    public ApiError handleNotAvailableException(NotAvailableException exception) {
+        return new ApiError(exception.getMessage(), "Not Available Exception.",
                 HttpStatus.CONFLICT.getReasonPhrase().toUpperCase(), LocalDateTime.now());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseBody
+    public ApiError handleAlreadyExistsException(AlreadyExistsException exception) {
+        return new ApiError(exception.getMessage(), "Already Exists Exception.",
+                HttpStatus.CONFLICT.getReasonPhrase().toUpperCase(), LocalDateTime.now());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ApiError handleRuntimeException(RuntimeException exception) {
+        return new ApiError(exception.getMessage(), "Runtime Exception.",
+                HttpStatus.BAD_REQUEST.getReasonPhrase().toUpperCase(), LocalDateTime.now());
     }
 
     @ExceptionHandler({ValidationException.class, MethodArgumentTypeMismatchException.class,
