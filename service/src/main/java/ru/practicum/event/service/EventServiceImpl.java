@@ -179,8 +179,8 @@ public class EventServiceImpl implements EventService {
 
         Set<Long> eventIds = eventEntities.stream()
                 .filter(eventEntityPredicate)
-                .map(Event::getId).
-                collect(Collectors.toSet());
+                .map(Event::getId)
+                .collect(Collectors.toSet());
 
         Map<Long, Long> statsMap = statisticsClient.getSetViewsByEventId(eventIds);
 
