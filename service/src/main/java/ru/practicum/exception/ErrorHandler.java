@@ -28,8 +28,7 @@ public class ErrorHandler {
                 HttpStatus.NOT_FOUND.getReasonPhrase().toUpperCase(), LocalDateTime.now());
     }
 
-    @ExceptionHandler({AlreadyExistsException.class, NotAvailableException.class,
-            DataIntegrityViolationException.class})
+    @ExceptionHandler({AlreadyExistsException.class, NotAvailableException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
     public ApiError handleConflictException(final RuntimeException e) {
@@ -40,7 +39,8 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler({ValidationException.class, MethodArgumentTypeMismatchException.class,
-            MethodArgumentNotValidException.class, MissingServletRequestParameterException.class})
+            MethodArgumentNotValidException.class, MissingServletRequestParameterException.class,
+            DataIntegrityViolationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ApiError handleBadRequestException(final RuntimeException e) {
