@@ -100,10 +100,8 @@ public class EventServiceImpl implements EventService {
         Event eventToUpdate = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие с ID " + eventId + " не найдено."));
 
-        if (updateEventAdminRequest.getEventDate() != null) {
-            if (updateEventAdminRequest.getEventDate().isBefore(LocalDateTime.now())) {
-                throw new ValidationException("Ошибка. Дата начала события должна быть не ранее чем за час от даты публикации.");
-            }
+        if ((updateEventAdminRequest.getEventDate() != null) && (updateEventAdminRequest.getEventDate().isBefore(LocalDateTime.now()))) {
+            throw new ValidationException("Ошибка. Дата начала события должна быть не ранее чем за час от даты публикации.");
         }
 
         if (updateEventAdminRequest.getStateAction() != null) {
@@ -169,18 +167,7 @@ public class EventServiceImpl implements EventService {
             return Collections.emptyList();
         }
 
-        java.util.function.Predicate<Event> eventEntityPredicate;
-        if (text != null && !text.isEmpty()) {
-            eventEntityPredicate = eventEntity -> eventEntity.getAnnotation().toLowerCase().contains(text.toLowerCase())
-                    || eventEntity.getDescription().toLowerCase().contains(text.toLowerCase());
-        } else {
-            eventEntityPredicate = eventEntity -> true;
-        }
-
-        Set<Long> eventIds = eventEntities.stream()
-                .filter(eventEntityPredicate)
-                .map(Event::getId)
-                .collect(Collectors.toSet());
+        Set<Long> eventIds = getEventIds(text, eventEntities);
 
         Map<Long, Long> statsMap = statisticsClient.getSetViewsByEventId(eventIds);
 
@@ -193,6 +180,21 @@ public class EventServiceImpl implements EventService {
                 eventShortDto.setViews(statsMap.getOrDefault(eventShortDto.getId(), 0L)));
 
         return events;
+    }
+
+    private Set<Long> getEventIds(String text, List<Event> eventEntities) {
+        java.util.function.Predicate<Event> eventEntityPredicate;
+        if (text != null && !text.isEmpty()) {
+            eventEntityPredicate = eventEntity -> eventEntity.getAnnotation().toLowerCase().contains(text.toLowerCase())
+                    || eventEntity.getDescription().toLowerCase().contains(text.toLowerCase());
+        } else {
+            eventEntityPredicate = eventEntity -> true;
+        }
+
+        return eventEntities.stream()
+                .filter(eventEntityPredicate)
+                .map(Event::getId)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -212,7 +214,7 @@ public class EventServiceImpl implements EventService {
 
         final PageRequest pageRequest = PageRequest.of(from / size, size);
 
-        if (states == null & rangeStart == null & rangeEnd == null) {
+        if (states == null && rangeStart == null && rangeEnd == null) {
             return eventRepository.findAll(pageRequest)
                     .stream()
                     .map(eventMapper::toEventDto)
@@ -238,10 +240,10 @@ public class EventServiceImpl implements EventService {
             end = LocalDateTime.now().plusYears(5);
         }
 
-        if (userIds.size() != 0 && states.size() != 0 && categories.size() != 0) {
+        if (!userIds.isEmpty() && !states.isEmpty() && !categories.isEmpty()) {
             return getEventDtoListWithAllParameters(userIds, categories, pageRequest, stateList, start, end);
         }
-        if (userIds.size() == 0 && categories.size() != 0) {
+        if (userIds.isEmpty() && !categories.isEmpty()) {
             return getEventDtoListWithAllParameters(userIds, categories, pageRequest, stateList, start, end);
         } else {
             return new ArrayList<>();

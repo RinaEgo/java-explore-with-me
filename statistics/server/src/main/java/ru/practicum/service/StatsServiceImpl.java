@@ -14,6 +14,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @Service
@@ -41,7 +42,7 @@ public class StatsServiceImpl implements StatsService {
         try {
             startDate = LocalDateTime.parse(URLDecoder.decode(start, StandardCharsets.UTF_8), dateTimeFormatter);
             endDate = LocalDateTime.parse(URLDecoder.decode(end, StandardCharsets.UTF_8), dateTimeFormatter);
-        } catch (Exception e) {
+        } catch (DateTimeParseException e) {
             throw new ValidationException("Некорректный формат даты.");
         }
         if (startDate.isAfter(endDate)) {

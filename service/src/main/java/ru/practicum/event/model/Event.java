@@ -67,7 +67,7 @@ public class Event {
     private Long views;
 
     @Transient
-    private final String datePattern = "yyyy-MM-dd HH:mm:ss";
+    private static final String PATTERN = "yyyy-MM-dd HH:mm:ss";
     @Transient
-    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(datePattern);
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(PATTERN);
 }

@@ -30,7 +30,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Transactional
     public CompilationDto create(NewCompilationDto newCompilationDto) {
 
-        if (newCompilationDto.getEvents() != null && newCompilationDto.getEvents().size() != 0) {
+        if (newCompilationDto.getEvents() != null && !newCompilationDto.getEvents().isEmpty()) {
             Set<Long> eventIds = newCompilationDto.getEvents();
             Set<Event> events = new HashSet<>(eventRepository.findAllByIdIn(eventIds));
 
