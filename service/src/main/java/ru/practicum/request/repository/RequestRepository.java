@@ -10,13 +10,6 @@ import java.util.Optional;
 
 public interface RequestRepository extends JpaRepository<Request, Long> {
 
-    Optional<Request> findByIdAndRequesterId(Long requestId, Long userId);
-
-    @Query("SELECT p FROM Request AS p " +
-            "JOIN FETCH p.event e " +
-            "WHERE p.event = :eventId AND e.initiator.id = :userId")
-    List<Request> findAllByEventWithInitiator(@Param(value = "userId") Long userId, @Param("eventId") Long eventId);
-
     @Query("SELECT p FROM Request p " +
             "JOIN FETCH p.event e " +
             "WHERE e.initiator.id =:userId " +
