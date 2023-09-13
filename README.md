@@ -20,3 +20,5 @@ API основного сервиса разделено на три части:
 
 Стек: Java 11, Spring Boot, Spring Data JPA, PostgreSQL, Docker, Maven, Lombok.
 Для удобного развертывания приложения реализован docker-compose.yml, содержащий все необходимые параметры.
+
+Pull Request: https://github.com/RinaEgo/java-explore-with-me/pull/6
