@@ -1,18 +1,17 @@
 package ru.practicum.model;
 
-import lombok.experimental.UtilityClass;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.springframework.stereotype.Component;
 import ru.practicum.HitDto;
 
-@UtilityClass
-public class HitMapper {
+@Mapper(componentModel = "spring")
+@Component
+public interface HitMapper {
 
-    public Hit toHit(HitDto hitDto) {
-        return Hit
-                .builder()
-                .app(hitDto.getApp())
-                .uri(hitDto.getUri())
-                .ip(hitDto.getIp())
-                .timestamp(hitDto.getTimestamp())
-                .build();
-    }
+    @Mapping(target = "timestamp", source = "timestamp", dateFormat = "yyyy-MM-dd HH:mm:ss")
+    HitDto toHitDto(Hit hit);
+
+    @Mapping(target = "timestamp", source = "timestamp", dateFormat = "yyyy-MM-dd HH:mm:ss")
+    Hit toHit(HitDto hitDto);
 }
